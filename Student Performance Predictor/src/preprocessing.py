@@ -1,6 +1,7 @@
+
 # ==========================================
 # File: src/preprocessing.py
-# Purpose: Create preprocessing pipeline
+# Purpose: Create reusable ML preprocessing pipeline
 # ==========================================
 
 from sklearn.compose import ColumnTransformer
@@ -9,40 +10,89 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-def create_preprocessor(numerical_features, categorical_features):
+# ==========================================
+# Create Preprocessor
+# ==========================================
+
+def create_preprocessor(
+    numerical_features: list[str],
+    categorical_features: list[str]
+) -> ColumnTransformer:
     """
-    Create a complete preprocessing pipeline.
+    Create the preprocessing pipeline for the
+    Student Performance Predictor.
+
+    Numerical features:
+        1. Missing values -> median
+        2. Scaling -> StandardScaler
+
+    Categorical features:
+        1. Missing values -> most frequent
+        2. Encoding -> OneHotEncoder
+        3. Unknown categories -> ignored
 
     Parameters
     ----------
-    numerical_features : list
-        Numerical column names.
+    numerical_features : list[str]
+        Names of numerical columns.
 
-    categorical_features : list
-        Categorical column names.
+    categorical_features : list[str]
+        Names of categorical columns.
 
     Returns
     -------
     ColumnTransformer
-        Ready-to-use preprocessing pipeline.
+        Complete preprocessing pipeline.
     """
 
-    # Numerical preprocessing
+    # ==========================================
+    # Numerical Pipeline
+    # ==========================================
+
     numeric_pipeline = Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
+        (
+            "imputer",
+            SimpleImputer(strategy="median")
+        ),
+        (
+            "scaler",
+            StandardScaler()
+        )
     ])
 
-    # Categorical preprocessing
+    # ==========================================
+    # Categorical Pipeline
+    # ==========================================
+
     categorical_pipeline = Pipeline([
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore"))
+        (
+            "imputer",
+            SimpleImputer(strategy="most_frequent")
+        ),
+        (
+            "encoder",
+            OneHotEncoder(
+                handle_unknown="ignore",
+                sparse_output=True
+            )
+        )
     ])
 
-    # Combine both pipelines
+    # ==========================================
+    # Combine Pipelines
+    # ==========================================
+
     preprocessor = ColumnTransformer([
-        ("num", numeric_pipeline, numerical_features),
-        ("cat", categorical_pipeline, categorical_features)
+        (
+            "numerical",
+            numeric_pipeline,
+            numerical_features
+        ),
+        (
+            "categorical",
+            categorical_pipeline,
+            categorical_features
+        )
     ])
 
     return preprocessor

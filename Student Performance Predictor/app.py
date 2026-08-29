@@ -1,9 +1,20 @@
-import streamlit as st
-import requests
+# ======================================================
+# File: app.py
+# Student Performance Predictor + SHAP Explainability
+# ======================================================
 
-# ==========================================
-# PAGE CONFIGURATION
-# ==========================================
+import streamlit as st
+import pandas as pd
+import numpy as np
+import joblib
+import shap
+import matplotlib.pyplot as plt
+
+from pathlib import Path
+
+# ======================================================
+# PAGE CONFIG
+# ======================================================
 
 st.set_page_config(
     page_title="Student Performance Predictor",
@@ -11,449 +22,266 @@ st.set_page_config(
     layout="wide"
 )
 
-# ==========================================
-# CUSTOM CSS
-# ==========================================
+# ======================================================
+# LOAD TRAINED MODEL
+# ======================================================
 
-st.markdown("""
-<style>
+PROJECT_ROOT = Path(__file__).resolve().parent
 
-.main {
-    padding-top: 2rem;
+MODEL_PATH = PROJECT_ROOT / "models" / "best_model.pkl"
+
+pipeline = joblib.load(MODEL_PATH)
+
+# Extract pipeline components
+preprocessor = pipeline.named_steps["preprocessor"]
+rf_model = pipeline.named_steps["model"]
+
+# ======================================================
+# LABELS
+# ======================================================
+
+GRADE_LABELS = {
+    0: "Fail",
+    1: "DD",
+    2: "DC",
+    3: "CC",
+    4: "CB",
+    5: "BB",
+    6: "BA",
+    7: "AA",
 }
 
-.title {
-    text-align: center;
-    font-size: 42px;
-    font-weight: 700;
-    margin-bottom: 5px;
+# ======================================================
+# NUMERIC MAPPINGS
+# Must match data_cleaning.py
+# ======================================================
+
+AGE_MAP = {
+    "18": 18.0,
+    "19-22": 20.5,
+    "23-27": 25.0
 }
 
-.subtitle {
-    text-align: center;
-    font-size: 18px;
-    margin-bottom: 35px;
+SCHOLARSHIP_MAP = {
+    "25%": 25.0,
+    "50%": 50.0,
+    "75%": 75.0,
+    "100%": 100.0
 }
 
-.section-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin-top: 20px;
-    margin-bottom: 15px;
+ATTENDANCE_MAP = {
+    "Never": 0.0,
+    "Sometimes": 1.0,
+    "Always": 2.0
 }
 
-.prediction-box {
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
-    margin-top: 25px;
-}
-
-.prediction-grade {
-    font-size: 42px;
-    font-weight: 700;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ==========================================
+# ======================================================
 # HEADER
-# ==========================================
+# ======================================================
+
+st.title("🎓 Student Performance Predictor")
 
 st.markdown(
-    '<div class="title">🎓 Student Performance Predictor</div>',
-    unsafe_allow_html=True
-)
+    """
+Predict the **final academic grade** using a trained **Random Forest Regression Model**.
 
-st.markdown(
-    '<div class="subtitle">'
-    'Machine Learning System for Predicting Student Academic Performance'
-    '</div>',
-    unsafe_allow_html=True
+The model uses student demographic information, study habits, attendance, scholarship and classroom behavior.
+"""
 )
 
 st.divider()
 
+# ======================================================
+# INPUT SECTION
+# ======================================================
 
-# ==========================================
-# STUDENT INFORMATION
-# ==========================================
+left, right = st.columns(2)
 
-st.markdown(
-    '<div class="section-title">👤 Student Information</div>',
-    unsafe_allow_html=True
-)
+with left:
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    student_id = st.text_input(
-        "Student ID",
-        "ST001"
-    )
-
-    student_age = st.selectbox(
+    age = st.selectbox(
         "Student Age",
-        ["18-21", "22-25", "26-30", "31-35"]
+        ["18", "19-22", "23-27"]
     )
-
-with col2:
 
     sex = st.selectbox(
         "Sex",
         ["Male", "Female"]
     )
 
-    high_school_type = st.selectbox(
+    high_school = st.selectbox(
         "High School Type",
-        ["Private", "Public", "Other"]
+        ["State", "Private", "Other"]
     )
-
-with col3:
 
     scholarship = st.selectbox(
         "Scholarship",
-        ["None", "25%", "50%", "75%", "100%"]
+        ["25%", "50%", "75%", "100%"]
     )
 
     transportation = st.selectbox(
         "Transportation",
-        ["Bus", "Private", "Other"]
+        ["Private", "Bus"]
     )
 
+with right:
 
-# ==========================================
-# ACADEMIC INFORMATION
-# ==========================================
-
-st.markdown(
-    '<div class="section-title">📚 Academic Information</div>',
-    unsafe_allow_html=True
-)
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    weekly_study_hours = st.number_input(
+    study_hours = st.selectbox(
         "Weekly Study Hours",
-        min_value=0,
-        max_value=100,
-        value=15
+        [0, 2, 8, 12]
     )
 
     attendance = st.selectbox(
         "Attendance",
-        ["Always", "Sometimes", "Never"]
+        ["Never", "Sometimes", "Always"]
     )
 
-with col2:
-
-    reading = st.selectbox(
-        "Reading",
-        ["Yes", "No"]
-    )
-
-    notes = st.selectbox(
-        "Taking Notes",
-        ["Yes", "No"]
-    )
-
-with col3:
-
-    listening = st.selectbox(
-        "Listening in Class",
-        ["Yes", "No"]
-    )
-
-    project_work = st.selectbox(
-        "Project Work",
-        ["Yes", "No"]
-    )
-
-
-# ==========================================
-# LIFESTYLE INFORMATION
-# ==========================================
-
-st.markdown(
-    '<div class="section-title">⚽ Lifestyle & Activities</div>',
-    unsafe_allow_html=True
-)
-
-col1, col2 = st.columns(2)
-
-with col1:
-
-    additional_work = st.selectbox(
+    additional_work = st.radio(
         "Additional Work",
-        ["Yes", "No"]
+        ["No", "Yes"]
     )
 
-with col2:
-
-    sports_activity = st.selectbox(
+    sports = st.radio(
         "Sports Activity",
-        ["Regular", "Sometimes", "No"]
+        ["No", "Yes"]
     )
 
+st.subheader("Study Habits")
 
-# ==========================================
-# PREDICTION BUTTON
-# ==========================================
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
+    reading = st.checkbox("Reading")
+
+with c2:
+    notes = st.checkbox("Taking Notes")
+
+with c3:
+    listening = st.checkbox("Listening in Class")
+
+with c4:
+    project = st.checkbox("Project Work")
 
 st.divider()
 
-col1, col2, col3 = st.columns([1, 2, 1])
+# ======================================================
+# PREDICTION
+# ======================================================
 
-with col2:
+if st.button("🚀 Predict Grade", use_container_width=True):
 
-    predict_button = st.button(
-        "🔮 Predict Student Grade",
+    # -----------------------------
+    # Convert UI to training format
+    # -----------------------------
+
+    input_df = pd.DataFrame([{
+        "Student_Age": AGE_MAP[age],
+        "Sex": sex,
+        "High_School_Type": high_school,
+        "Scholarship": SCHOLARSHIP_MAP[scholarship],
+        "Additional_Work": 1.0 if additional_work == "Yes" else 0.0,
+        "Sports_activity": 1.0 if sports == "Yes" else 0.0,
+        "Transportation": transportation,
+        "Weekly_Study_Hours": float(study_hours),
+        "Attendance": ATTENDANCE_MAP[attendance],
+        "Reading": 1.0 if reading else 0.0,
+        "Notes": 1.0 if notes else 0.0,
+        "Listening_in_Class": 1.0 if listening else 0.0,
+        "Project_work": 1.0 if project else 0.0,
+    }])
+
+    # -----------------------------
+    # Predict
+    # -----------------------------
+
+    prediction = pipeline.predict(input_df)[0]
+
+    grade_score = int(round(prediction))
+    grade_score = max(0, min(7, grade_score))
+
+    grade = GRADE_LABELS[grade_score]
+
+    st.success("Prediction completed successfully!")
+
+    m1, m2 = st.columns(2)
+
+    with m1:
+        st.metric(
+            "Predicted Grade",
+            grade
+        )
+
+    with m2:
+        st.metric(
+            "Grade Score",
+            grade_score
+        )
+
+    st.divider()
+
+    # ======================================================
+    # SHAP EXPLANATION
+    # ======================================================
+
+    st.subheader("🧠 Why did the model predict this grade?")
+
+    X_processed = preprocessor.transform(input_df)
+
+    # Convert sparse -> dense if needed
+    if hasattr(X_processed, "toarray"):
+        X_processed = X_processed.toarray()
+
+    feature_names = preprocessor.get_feature_names_out()
+
+    explainer = shap.TreeExplainer(rf_model)
+
+    shap_values = explainer.shap_values(X_processed)
+
+    base_value = explainer.expected_value
+
+    if isinstance(base_value, np.ndarray):
+        base_value = float(base_value.flatten()[0])
+    else:
+        base_value = float(base_value)
+
+    explanation = shap.Explanation(
+        values=shap_values[0],
+        base_values=base_value,
+        data=X_processed[0],
+        feature_names=feature_names
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    shap.plots.waterfall(
+        explanation,
+        max_display=12,
+        show=False
+    )
+
+    st.pyplot(fig)
+
+    plt.close(fig)
+
+    # ======================================================
+    # STUDENT DATA
+    # ======================================================
+
+    st.divider()
+
+    st.subheader("📋 Processed Student Data")
+
+    st.dataframe(
+        input_df,
         use_container_width=True
     )
 
+# ======================================================
+# FOOTER
+# ======================================================
 
-# ==========================================
-# PREDICTION
-# ==========================================
+st.divider()
 
-if predict_button:
-
-    student_data = {
-
-        "Student_ID": student_id,
-
-        "Student_Age": student_age,
-
-        "Sex": sex,
-
-        "High_School_Type": high_school_type,
-
-        "Scholarship": scholarship,
-
-        "Additional_Work": additional_work,
-
-        "Sports_activity": sports_activity,
-
-        "Transportation": transportation,
-
-        "Weekly_Study_Hours": weekly_study_hours,
-
-        "Attendance": attendance,
-
-        "Reading": reading,
-
-        "Notes": notes,
-
-        "Listening_in_Class": listening,
-
-        "Project_work": project_work
-    }
-
-    try:
-
-        with st.spinner("Analyzing student data..."):
-
-            response = requests.post(
-                "http://127.0.0.1:8000/predict",
-                json=student_data
-            )
-
-        if response.status_code == 200:
-
-            result = response.json()
-
-            grade = result["Predicted_Grade"]
-
-            # ==========================================
-            # Grade Interpretation
-            # ==========================================
-
-            grade_info = {
-                "FF": {
-                    "score": 0,
-                    "level": "Very Poor",
-                    "message": "The student may need significant academic support."
-                },
-                "DD": {
-                    "score": 1,
-                    "level": "Poor",
-                    "message": "The student should improve study habits and academic engagement."
-                },
-                "DC": {
-                    "score": 2,
-                    "level": "Below Average",
-                    "message": "There is room for improvement in academic performance."
-                },
-                "CC": {
-                    "score": 3,
-                    "level": "Average",
-                    "message": "The student is performing at an average level."
-                },
-                "CB": {
-                    "score": 4,
-                    "level": "Good",
-                    "message": "The student is showing good academic performance."
-                },
-                "BB": {
-                    "score": 5,
-                    "level": "Very Good",
-                    "message": "The student is performing very well academically."
-                },
-                "BA": {
-                    "score": 6,
-                    "level": "Excellent",
-                    "message": "The student demonstrates excellent academic performance."
-                },
-                "AA": {
-                    "score": 7,
-                    "level": "Outstanding",
-                    "message": "The student demonstrates outstanding academic performance."
-                }
-            }
-
-            info = grade_info.get(
-                grade,
-                {
-                    "score": 0,
-                    "level": "Unknown",
-                    "message": "No interpretation available."
-                }
-            )
-
-            st.success("Prediction completed successfully!")
-
-            st.markdown(
-                f"""
-                <div style="
-                    padding: 30px;
-                    border-radius: 20px;
-                    text-align: center;
-                    border: 2px solid #4CAF50;
-                    margin-top: 20px;
-                ">
-                    <h2>🎓 Predicted Student Grade</h2>
-                    <h1 style="font-size: 60px;">{grade}</h1>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            # ==========================================
-            # Performance Information
-            # ==========================================
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-
-                st.metric(
-                    "Performance Level",
-                    info["level"]
-                )
-
-            with col2:
-
-                st.metric(
-                    "Grade Score",
-                    f'{info["score"]} / 7'
-                )
-
-            st.info(
-                f'💡 {info["message"]}'
-            )
-            # ==========================================
-        # Performance Score
-        # ==========================================
-
-            st.markdown("### 📊 Performance Score")
-
-            score = info["score"]
-
-            st.progress(score / 7)
-
-            st.caption(
-                f"Performance score: {score} / 7"
-            )
-            # ==========================================
-            # Student Profile
-            # ==========================================
-
-            st.markdown("### 👤 Student Profile")
-
-            profile_col1, profile_col2, profile_col3 = st.columns(3)
-
-            with profile_col1:
-
-                st.metric(
-                    "📚 Weekly Study",
-                    f"{weekly_study_hours} hours"
-                )
-
-            with profile_col2:
-
-                st.metric(
-                    "📅 Attendance",
-                    attendance
-                )
-
-            with profile_col3:
-
-                st.metric(
-                    "⚽ Sports Activity",
-                    sports_activity
-                )
-                # ==========================================
-    # Academic Habits
-    # ==========================================
-
-            st.markdown("### 📖 Academic Habits")
-
-            habit_col1, habit_col2, habit_col3, habit_col4 = st.columns(4)
-
-            with habit_col1:
-
-                st.metric(
-                    "Reading",
-                    reading
-                )
-
-            with habit_col2:
-
-                st.metric(
-                    "Notes",
-                    notes
-                )
-
-            with habit_col3:
-
-                st.metric(
-                    "Listening",
-                    listening
-                )
-
-            with habit_col4:
-
-                st.metric(
-                    "Project Work",
-                    project_work
-                )         
-        else:
-
-            st.error(
-                f"API Error: {response.status_code}"
-            )
-
-    except requests.exceptions.ConnectionError:
-
-        st.error(
-            "❌ Cannot connect to the FastAPI server."
-        )
-
-        st.info(
-            "Make sure FastAPI is running with: "
-            "`python -m uvicorn api.app:app --reload`"
-        )
+st.caption(
+    "Machine Learning Portfolio Project • Random Forest • SHAP • Streamlit"
+)

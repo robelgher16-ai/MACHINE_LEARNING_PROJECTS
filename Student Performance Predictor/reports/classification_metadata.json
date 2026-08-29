@@ -1,0 +1,68 @@
+{
+    "project": "Student Performance Predictor",
+    "task": "Multi-class classification",
+    "dataset": {
+        "path": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\data\\raw\\Students_Performance.csv",
+        "rows": 145,
+        "columns": 15
+    },
+    "features": {
+        "count": 13,
+        "numerical": [
+            "Student_Age",
+            "Scholarship",
+            "Additional_Work",
+            "Sports_activity",
+            "Weekly_Study_Hours",
+            "Attendance",
+            "Reading",
+            "Notes",
+            "Listening_in_Class",
+            "Project_work"
+        ],
+        "categorical": [
+            "Sex",
+            "High_School_Type",
+            "Transportation"
+        ]
+    },
+    "target": {
+        "name": "Grade",
+        "type": "multiclass_ordinal",
+        "classes": {
+            "Fail": 0,
+            "DD": 1,
+            "DC": 2,
+            "CC": 3,
+            "CB": 4,
+            "BB": 5,
+            "BA": 6,
+            "AA": 7
+        }
+    },
+    "training": {
+        "test_size": 0.2,
+        "random_state": 42,
+        "cv_folds": 5,
+        "training_samples": 116,
+        "testing_samples": 29
+    },
+    "best_model": {
+        "name": "Gradient Boosting",
+        "CV_F1": 0.2424,
+        "CV_Accuracy": 0.2493,
+        "CV_Balanced_Accuracy": 0.2162,
+        "Test_Accuracy": 0.1724,
+        "Test_Balanced_Accuracy": 0.1131,
+        "Test_Precision": 0.1395,
+        "Test_Recall": 0.1724,
+        "Test_F1": 0.1487
+    },
+    "artifacts": {
+        "model": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\models\\best_classifier.pkl",
+        "metrics": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\classification_metrics.csv",
+        "cv_results": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\classification_cv_results.csv",
+        "confusion_matrix": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\classification_confusion_matrix.csv",
+        "classification_report": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\classification_report.csv"
+    }
+}

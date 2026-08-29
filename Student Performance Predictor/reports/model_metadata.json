@@ -1,0 +1,73 @@
+{
+    "project": "Student Performance Predictor",
+    "dataset": {
+        "path": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\data\\raw\\Students_Performance.csv",
+        "rows": 145,
+        "columns": 15
+    },
+    "features": {
+        "count": 13,
+        "numerical": [
+            "Student_Age",
+            "Scholarship",
+            "Additional_Work",
+            "Sports_activity",
+            "Weekly_Study_Hours",
+            "Attendance",
+            "Reading",
+            "Notes",
+            "Listening_in_Class",
+            "Project_work"
+        ],
+        "categorical": [
+            "Sex",
+            "High_School_Type",
+            "Transportation"
+        ]
+    },
+    "target": {
+        "name": "Grade",
+        "type": "ordinal_numeric",
+        "range": [
+            0,
+            7
+        ],
+        "mapping": {
+            "Fail": 0,
+            "FF": 0,
+            "DD": 1,
+            "DC": 2,
+            "CC": 3,
+            "CB": 4,
+            "BB": 5,
+            "BA": 6,
+            "AA": 7
+        }
+    },
+    "training": {
+        "test_size": 0.2,
+        "random_state": 42,
+        "training_samples": 116,
+        "testing_samples": 29,
+        "cross_validation_folds": 5
+    },
+    "best_model": {
+        "name": "Random Forest",
+        "test_MAE": 1.8258,
+        "test_MSE": 4.9792,
+        "test_RMSE": 2.2314,
+        "test_R2": 0.0873,
+        "cv_MAE": 2.0063,
+        "cv_MAE_STD": 0.1803,
+        "cv_RMSE": 2.3262,
+        "cv_RMSE_STD": 0.2625,
+        "cv_R2": -0.1739,
+        "cv_R2_STD": 0.3245
+    },
+    "artifacts": {
+        "model": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\models\\best_model.pkl",
+        "metrics": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\metrics.csv",
+        "cross_validation_results": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\cross_validation_results.csv",
+        "metadata": "C:\\Users\\hp\\Videos\\AI FULL THEORY AND PROJECTS\\AI PROJECTS\\MACHINE LEARNING PROJECTS\\Student Performance Predictor\\reports\\model_metadata.json"
+    }
+}

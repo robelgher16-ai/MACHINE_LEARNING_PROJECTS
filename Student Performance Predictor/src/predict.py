@@ -1,17 +1,33 @@
 # ==========================================
 # File: src/predict.py
-# Purpose: Predict student grades
+# Purpose: Predict student performance
 # ==========================================
+
+from pathlib import Path
 
 import joblib
 import pandas as pd
 
-# Load trained model once
-model = joblib.load("models/best_model.pkl")
 
-# Convert numeric prediction back to grade
-grade_decode = {
-    0: "FF",
+# ==========================================
+# Project Paths
+# ==========================================
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = (
+    PROJECT_ROOT
+    / "models"
+    / "best_model.pkl"
+)
+
+
+# ==========================================
+# Grade Mapping
+# ==========================================
+
+GRADE_MAPPING = {
+    0: "Fail",
     1: "DD",
     2: "DC",
     3: "CC",
@@ -22,57 +38,155 @@ grade_decode = {
 }
 
 
-def predict_single(student_data: dict):
-    """
-    Predict one student's grade.
+# ==========================================
+# Load Model
+# ==========================================
 
-    Parameters
-    ----------
-    student_data : dict
+def load_model():
 
-    Returns
-    -------
-    str
-        Predicted letter grade.
-    """
+    if not MODEL_PATH.exists():
 
-    df = pd.DataFrame([student_data])
+        raise FileNotFoundError(
+            f"""
+Model not found.
 
-    prediction = model.predict(df)[0]
+Expected path:
+{MODEL_PATH}
 
-    prediction = int(round(prediction))
+Run training first:
 
-    prediction = max(0, min(7, prediction))
+python -m src.train
+"""
+        )
 
-    return grade_decode[prediction]
+    model = joblib.load(MODEL_PATH)
+
+    return model
 
 
-def predict_batch(students: list):
-    """
-    Predict multiple students.
+# ==========================================
+# Predict Student Grade
+# ==========================================
 
-    Parameters
-    ----------
-    students : list of dictionaries
+def predict_student(student_data: dict):
 
-    Returns
-    -------
-    list
-        Predicted grades.
-    """
+    # --------------------------------------
+    # Convert dictionary to DataFrame
+    # --------------------------------------
 
-    df = pd.DataFrame(students)
+    student_df = pd.DataFrame(
+        [student_data]
+    )
 
-    predictions = model.predict(df)
+    # --------------------------------------
+    # Load trained pipeline
+    # --------------------------------------
 
-    results = []
+    model = load_model()
 
-    for p in predictions:
+    # --------------------------------------
+    # Prediction
+    # --------------------------------------
 
-        p = int(round(p))
+    prediction = model.predict(
+        student_df
+    )
 
-        p = max(0, min(7, p))
+    predicted_grade = round(
+        float(prediction[0])
+    )
 
-        results.append(grade_decode[p])
+    # --------------------------------------
+    # Keep prediction inside valid range
+    # --------------------------------------
 
-    return results
+    predicted_grade = max(
+        0,
+        min(7, predicted_grade)
+    )
+
+    grade_label = GRADE_MAPPING[
+        predicted_grade
+    ]
+
+    return predicted_grade, grade_label
+
+
+# ==========================================
+# Main
+# ==========================================
+
+if __name__ == "__main__":
+
+    print("=" * 60)
+    print("STUDENT PERFORMANCE PREDICTOR")
+    print("=" * 60)
+
+    # --------------------------------------
+    # Example Student
+    # --------------------------------------
+
+    student = {
+
+        "Student_Age": 18.0,
+
+        "Sex": "Male",
+
+        "High_School_Type": "State",
+
+        "Scholarship": 50.0,
+
+        "Additional_Work": 0.0,
+
+        "Sports_activity": 0.0,
+
+        "Transportation": "Private",
+
+        "Weekly_Study_Hours": 8,
+
+        "Attendance": 2.0,
+
+        "Reading": 1.0,
+
+        "Notes": 1.0,
+
+        "Listening_in_Class": 1.0,
+
+        "Project_work": 1.0
+    }
+
+    # --------------------------------------
+    # Predict
+    # --------------------------------------
+
+    predicted_grade, grade_label = predict_student(
+        student
+    )
+
+    # --------------------------------------
+    # Display
+    # --------------------------------------
+
+    print("\nStudent Information:")
+    print("-" * 60)
+
+    for feature, value in student.items():
+
+        print(
+            f"{feature:<25}: {value}"
+        )
+
+    print("\nPrediction:")
+    print("-" * 60)
+
+    print(
+        f"Predicted Grade Score : "
+        f"{predicted_grade}"
+    )
+
+    print(
+        f"Predicted Grade       : "
+        f"{grade_label}"
+    )
+
+    print("=" * 60)
