@@ -1,0 +1,54 @@
+# Virtual environments
+
+.venv/
+venv/
+env/
+
+# Python cache
+
+**pycache**/
+*.py[cod]
+
+# Jupyter
+
+.ipynb_checkpoints/
+
+# CatBoost generated files
+
+catboost_info/
+
+# Environment variables and secrets
+
+.env
+.env.*
+!.env.example
+
+# Streamlit secrets
+
+.streamlit/secrets.toml
+
+# Logs
+
+*.log
+
+# Testing and coverage
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+
+build/
+dist/
+*.egg-info/
+
+# IDE settings
+
+.vscode/
+.idea/
+
+# OS files
+
+.DS_Store
+Thumbs.db
