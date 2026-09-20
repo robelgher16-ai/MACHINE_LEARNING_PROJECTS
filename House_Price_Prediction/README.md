@@ -1,8 +1,22 @@
 # House Price Prediction
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://house-price-predictor-robel.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)](https://www.python.org/)
+[![Scikit-learn](https://img.shields.io/badge/Scikit--learn-ML-F7931E?logo=scikitlearn)](https://scikit-learn.org/)
+
 A complete end-to-end Machine Learning project that predicts house prices from property characteristics using Python, Scikit-learn, Streamlit, and FastAPI.
 
-The project covers the complete machine learning workflow from data analysis and model training to a web interface and REST API.
+The project covers the complete machine learning workflow from data analysis and model training to a web interface, REST API, and cloud deployment.
+
+---
+
+## Live Application
+
+The application is deployed and publicly accessible through Streamlit Community Cloud.
+
+**Live Demo:**
+
+https://house-price-predictor-robel.streamlit.app/
 
 ---
 
@@ -53,10 +67,12 @@ The project uses a Kaggle House Price Prediction Dataset containing 2,000 record
 - Model evaluation
 - Model comparison
 - Final model serialization
+- Scikit-learn prediction pipeline
 - Streamlit web application
 - FastAPI REST API
 - Input validation with Pydantic
 - Local prediction pipeline
+- Cloud deployment
 - Professional project structure
 
 ---
@@ -100,7 +116,7 @@ Streamlit Application
         ↓
 FastAPI API
         ↓
-Deployment
+Cloud Deployment
 ```
 
 ---
@@ -185,10 +201,10 @@ Several regression models were evaluated:
 
 The main evaluation metrics were:
 
-- MAE — Mean Absolute Error
-- MSE — Mean Squared Error
-- RMSE — Root Mean Squared Error
-- R² — Coefficient of Determination
+- **MAE** — Mean Absolute Error
+- **MSE** — Mean Squared Error
+- **RMSE** — Root Mean Squared Error
+- **R²** — Coefficient of Determination
 
 ### Current Results
 
@@ -203,7 +219,7 @@ The main evaluation metrics were:
 | LightGBM          | 247,034.45 | 285,070.30 | -0.0446 |
 | CatBoost          | 244,376.78 |          — |       — |
 
-The current final model used by the application is **Linear Regression**.
+The final model used by the application is **Linear Regression**.
 
 ---
 
@@ -215,7 +231,11 @@ For example, the exploratory analysis showed very weak correlations between seve
 
 This affects predictive performance and explains why the evaluated models do not achieve a strong positive R² score.
 
-This is an important machine learning lesson: **model complexity cannot compensate for weak or uninformative data relationships.**
+This is an important machine learning lesson:
+
+> **Model complexity cannot compensate for weak or uninformative data relationships.**
+
+The project therefore focuses not only on prediction performance, but also on demonstrating the complete machine learning engineering workflow from data preparation through deployment.
 
 ---
 
@@ -283,11 +303,12 @@ House_Price_Prediction/
 - Pydantic
 - Uvicorn
 
-### Development
+### Development & Deployment
 
 - Jupyter Notebook
 - Git
 - GitHub
+- Streamlit Community Cloud
 
 ---
 
@@ -342,6 +363,12 @@ The application provides:
 - Prediction result
 - About page
 
+### Live Application
+
+The deployed version is available at:
+
+https://house-price-predictor-robel.streamlit.app/
+
 ---
 
 ## Run the FastAPI Application
@@ -370,7 +397,7 @@ Prediction endpoint:
 POST /predict
 ```
 
-Example request:
+### Example Request
 
 ```json
 {
@@ -385,7 +412,7 @@ Example request:
 }
 ```
 
-Example response:
+### Example Response
 
 ```json
 {
@@ -417,6 +444,41 @@ The trained pipeline is stored in:
 models/final_model.pkl
 ```
 
+The prediction function loads this saved pipeline and applies the same preprocessing used during model training.
+
+---
+
+## API Architecture
+
+The FastAPI backend provides a REST interface for making house price predictions.
+
+```text
+Client
+  ↓
+FastAPI
+  ↓
+Pydantic Validation
+  ↓
+Prediction Function
+  ↓
+Saved ML Pipeline
+  ↓
+Predicted Price
+  ↓
+JSON Response
+```
+
+The API validates incoming values such as:
+
+- Area range
+- Number of bedrooms
+- Number of bathrooms
+- Number of floors
+- Year built
+- Location
+- Condition
+- Garage availability
+
 ---
 
 ## Learning Objectives
@@ -437,6 +499,7 @@ This project demonstrates practical understanding of:
 - Streamlit development
 - REST API development
 - Input validation
+- Cloud deployment
 - Git/GitHub project management
 
 ---
@@ -453,30 +516,34 @@ Possible improvements include:
 - SHAP explainability
 - Improved model selection
 - Better feature collection
-- Cloud deployment
 - API authentication
 - Automated model retraining
 - Model monitoring
+- Production deployment of the FastAPI backend
 
 ---
 
 ## Project Status
 
-**Machine Learning pipeline:** Completed
+| Component                  | Status    |
+| -------------------------- | --------- |
+| Machine Learning Pipeline  | Completed |
+| Data Preprocessing         | Completed |
+| Exploratory Data Analysis  | Completed |
+| Model Comparison           | Completed |
+| Prediction Pipeline        | Completed |
+| Streamlit Web Application  | Completed |
+| FastAPI REST API           | Completed |
+| Screenshots                | Completed |
+| GitHub Documentation       | Completed |
+| Streamlit Cloud Deployment | Live      |
+| Public Live Demo           | Available |
 
-**Model comparison:** Completed
+### Live Demo
 
-**Prediction pipeline:** Completed
+**Streamlit Application:**
 
-**Streamlit interface:** Completed
-
-**FastAPI interface:** Completed
-
-**Screenshots:** Completed
-
-**GitHub preparation:** In progress
-
-**Deployment:** Next step
+https://house-price-predictor-robel.streamlit.app/
 
 ---
 
@@ -485,8 +552,15 @@ Possible improvements include:
 **Robel Gebregziabher**
 
 Information Technology Student
-Machine Learning | Deep Learning | Generative AI | AI Engineering
 
-GitHub:
+**Focus Areas:**
 
-`https://github.com/robelgher16-ai`
+Machine Learning • Deep Learning • Generative AI • AI Engineering
+
+### GitHub
+
+https://github.com/robelgher16-ai
+
+### Live Application
+
+https://house-price-predictor-robel.streamlit.app/
