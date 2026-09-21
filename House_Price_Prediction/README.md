@@ -1,22 +1,43 @@
 # House Price Prediction
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://house-price-predictor-robel.streamlit.app/)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://house-price-api-7y5w.onrender.com/docs)
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)](https://www.python.org/)
 [![Scikit-learn](https://img.shields.io/badge/Scikit--learn-ML-F7931E?logo=scikitlearn)](https://scikit-learn.org/)
 
 A complete end-to-end Machine Learning project that predicts house prices from property characteristics using Python, Scikit-learn, Streamlit, and FastAPI.
 
-The project covers the complete machine learning workflow from data analysis and model training to a web interface, REST API, and cloud deployment.
+The project covers the complete machine learning workflow from data analysis and model training to a web interface, REST API, model serialization, and cloud deployment.
 
 ---
 
-## Live Application
+## Live Applications
 
-The application is deployed and publicly accessible through Streamlit Community Cloud.
+### Streamlit Web Application
+
+The interactive house price prediction application is publicly deployed through Streamlit Community Cloud.
 
 **Live Demo:**
 
 https://house-price-predictor-robel.streamlit.app/
+
+### FastAPI REST API
+
+The machine learning API is publicly deployed through Render.
+
+**Live API:**
+
+https://house-price-api-7y5w.onrender.com
+
+**Interactive API Documentation:**
+
+https://house-price-api-7y5w.onrender.com/docs
+
+The FastAPI deployment provides:
+
+- `GET /health` — API health check
+- `POST /predict` — House price prediction
+- `/docs` — Interactive Swagger/OpenAPI documentation
 
 ---
 
@@ -33,7 +54,9 @@ The goal of this project is to build a machine learning system that predicts the
 - Condition
 - Garage availability
 
-The project uses a Kaggle House Price Prediction Dataset containing 2,000 records.
+The project uses the Kaggle **House Price Prediction Dataset**, containing 2,000 records.
+
+The project demonstrates the complete workflow of taking a machine learning model from experimentation in notebooks to a structured application, REST API, and cloud deployment.
 
 ---
 
@@ -61,6 +84,7 @@ The project uses a Kaggle House Price Prediction Dataset containing 2,000 record
 
 - House price prediction
 - Data preprocessing
+- Exploratory data analysis
 - Categorical feature encoding
 - Train/test splitting
 - Multiple machine learning models
@@ -70,10 +94,12 @@ The project uses a Kaggle House Price Prediction Dataset containing 2,000 record
 - Scikit-learn prediction pipeline
 - Streamlit web application
 - FastAPI REST API
-- Input validation with Pydantic
+- Pydantic input validation
 - Local prediction pipeline
 - Cloud deployment
+- Interactive API documentation
 - Professional project structure
+- Git/GitHub version control
 
 ---
 
@@ -114,7 +140,7 @@ Prediction Pipeline
         ↓
 Streamlit Application
         ↓
-FastAPI API
+FastAPI REST API
         ↓
 Cloud Deployment
 ```
@@ -149,7 +175,7 @@ The `Id` column was removed because it does not provide meaningful predictive in
 
 Categorical variables were converted into numerical features using one-hot encoding.
 
-The encoded feature set contains:
+The final encoded feature set contains:
 
 ```text
 Area
@@ -182,13 +208,15 @@ Training set: 80% → 1600 samples
 Testing set: 20% → 400 samples
 ```
 
+The preprocessing logic is integrated into the Scikit-learn pipeline so that the same transformations are applied during training and prediction.
+
 ---
 
 ## Models Evaluated
 
 Several regression models were evaluated:
 
-- Baseline model
+- Baseline
 - Linear Regression
 - Decision Tree
 - Random Forest
@@ -197,7 +225,7 @@ Several regression models were evaluated:
 - LightGBM
 - CatBoost
 
-### Model Evaluation
+### Evaluation Metrics
 
 The main evaluation metrics were:
 
@@ -219,7 +247,7 @@ The main evaluation metrics were:
 | LightGBM          | 247,034.45 | 285,070.30 | -0.0446 |
 | CatBoost          | 244,376.78 |          — |       — |
 
-The final model used by the application is **Linear Regression**.
+The final model used by the deployed application is **Linear Regression**.
 
 ---
 
@@ -227,11 +255,11 @@ The final model used by the application is **Linear Regression**.
 
 The dataset appears to contain relatively weak relationships between the available input features and the target price.
 
-For example, the exploratory analysis showed very weak correlations between several numerical features and `Price`.
+Exploratory analysis showed very weak correlations between several numerical features and `Price`. This limits the predictive performance of the evaluated models.
 
-This affects predictive performance and explains why the evaluated models do not achieve a strong positive R² score.
+The negative or near-zero R² values indicate that the models do not explain the target variation particularly well on the available test data.
 
-This is an important machine learning lesson:
+This demonstrates an important machine learning lesson:
 
 > **Model complexity cannot compensate for weak or uninformative data relationships.**
 
@@ -303,12 +331,16 @@ House_Price_Prediction/
 - Pydantic
 - Uvicorn
 
-### Development & Deployment
+### Development
 
 - Jupyter Notebook
 - Git
 - GitHub
+
+### Deployment
+
 - Streamlit Community Cloud
+- Render
 
 ---
 
@@ -365,39 +397,53 @@ The application provides:
 
 ### Live Application
 
-The deployed version is available at:
-
 https://house-price-predictor-robel.streamlit.app/
 
 ---
 
 ## Run the FastAPI Application
 
-From the project directory:
+From the `House_Price_Prediction` directory:
 
 ```bash
 uvicorn api.main:app --reload
 ```
 
-API documentation:
+The local API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+### Local API Documentation
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Health check:
+### Health Check
 
 ```text
 GET /health
 ```
 
-Prediction endpoint:
+Expected response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### Prediction Endpoint
 
 ```text
 POST /predict
 ```
 
-### Example Request
+---
+
+## FastAPI Example Request
 
 ```json
 {
@@ -420,11 +466,39 @@ POST /predict
 }
 ```
 
+The exact predicted value depends on the trained model and input data.
+
+---
+
+## Production API
+
+The FastAPI backend is deployed on Render.
+
+### API Base URL
+
+```text
+https://house-price-api-7y5w.onrender.com
+```
+
+### API Documentation
+
+```text
+https://house-price-api-7y5w.onrender.com/docs
+```
+
+### Available Endpoints
+
+| Method | Endpoint   | Purpose                           |
+| ------ | ---------- | --------------------------------- |
+| GET    | `/health`  | Check API status                  |
+| POST   | `/predict` | Predict house price               |
+| GET    | `/docs`    | Interactive Swagger documentation |
+
 ---
 
 ## Model Pipeline
 
-The application uses a saved Scikit-learn pipeline containing:
+The application uses a saved Scikit-learn pipeline containing preprocessing and the final regression model.
 
 ```text
 Input Data
@@ -444,7 +518,7 @@ The trained pipeline is stored in:
 models/final_model.pkl
 ```
 
-The prediction function loads this saved pipeline and applies the same preprocessing used during model training.
+The prediction function loads the saved pipeline and applies the same preprocessing used during model training.
 
 ---
 
@@ -481,6 +555,43 @@ The API validates incoming values such as:
 
 ---
 
+## Deployment Architecture
+
+The complete deployed system consists of two public services:
+
+```text
+                    User
+                     │
+                     ├─────────────────────┐
+                     │                     │
+                     ▼                     ▼
+          Streamlit Application      FastAPI REST API
+          Streamlit Cloud                 Render
+                     │                     │
+                     └──────────┬──────────┘
+                                ▼
+                         Saved ML Pipeline
+                                │
+                                ▼
+                         House Price Prediction
+```
+
+### Public Services
+
+**Streamlit Application**
+
+https://house-price-predictor-robel.streamlit.app/
+
+**FastAPI API**
+
+https://house-price-api-7y5w.onrender.com
+
+**FastAPI Documentation**
+
+https://house-price-api-7y5w.onrender.com/docs
+
+---
+
 ## Learning Objectives
 
 This project demonstrates practical understanding of:
@@ -514,36 +625,47 @@ Possible improvements include:
 - Cross-validation
 - Error analysis
 - SHAP explainability
-- Improved model selection
-- Better feature collection
-- API authentication
-- Automated model retraining
+- Improved feature collection
 - Model monitoring
-- Production deployment of the FastAPI backend
+- Automated model retraining
+- API authentication
+- CI/CD automation
+- Improved production infrastructure
 
 ---
 
 ## Project Status
 
-| Component                  | Status    |
-| -------------------------- | --------- |
-| Machine Learning Pipeline  | Completed |
-| Data Preprocessing         | Completed |
-| Exploratory Data Analysis  | Completed |
-| Model Comparison           | Completed |
-| Prediction Pipeline        | Completed |
-| Streamlit Web Application  | Completed |
-| FastAPI REST API           | Completed |
-| Screenshots                | Completed |
-| GitHub Documentation       | Completed |
-| Streamlit Cloud Deployment | Live      |
-| Public Live Demo           | Available |
+| Component                    | Status    |
+| ---------------------------- | --------- |
+| Machine Learning Pipeline    | Completed |
+| Data Preprocessing           | Completed |
+| Exploratory Data Analysis    | Completed |
+| Model Comparison             | Completed |
+| Prediction Pipeline          | Completed |
+| Streamlit Web Application    | Completed |
+| FastAPI REST API             | Completed |
+| Screenshots                  | Completed |
+| GitHub Documentation         | Completed |
+| Streamlit Cloud Deployment   | Live      |
+| FastAPI Render Deployment    | Live      |
+| Public Streamlit Application | Available |
+| Public FastAPI API           | Available |
+| Swagger API Documentation    | Available |
 
 ### Live Demo
 
-**Streamlit Application:**
+**Streamlit Application**
 
 https://house-price-predictor-robel.streamlit.app/
+
+**FastAPI API**
+
+https://house-price-api-7y5w.onrender.com
+
+**FastAPI Swagger Documentation**
+
+https://house-price-api-7y5w.onrender.com/docs
 
 ---
 
@@ -553,7 +675,7 @@ https://house-price-predictor-robel.streamlit.app/
 
 Information Technology Student
 
-**Focus Areas:**
+### Focus Areas
 
 Machine Learning • Deep Learning • Generative AI • AI Engineering
 
@@ -564,3 +686,7 @@ https://github.com/robelgher16-ai
 ### Live Application
 
 https://house-price-predictor-robel.streamlit.app/
+
+### Live API
+
+https://house-price-api-7y5w.onrender.com
