@@ -1,16 +1,6 @@
-# ======================================================
-# File: app.py
-# Student Performance Predictor + SHAP Explainability
-# ======================================================
-
 import streamlit as st
 import pandas as pd
-import numpy as np
-import joblib
-import shap
-import matplotlib.pyplot as plt
-
-from pathlib import Path
+import requests
 
 # ======================================================
 # PAGE CONFIG
@@ -23,258 +13,280 @@ st.set_page_config(
 )
 
 # ======================================================
-# LOAD TRAINED MODEL
+# API URL (LOCAL)
 # ======================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+API_URL = "http://127.0.0.1:8000/predict"
 
-MODEL_PATH = PROJECT_ROOT / "models" / "best_model.pkl"
+# ======================================================
+# CUSTOM CSS
+# ======================================================
 
-pipeline = joblib.load(MODEL_PATH)
+st.markdown("""
+<style>
+.stApp{
+    background: linear-gradient(135deg,#eef5ff,#f8faff);
+}
 
-# Extract pipeline components
-preprocessor = pipeline.named_steps["preprocessor"]
-rf_model = pipeline.named_steps["model"]
+.hero{
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    padding:30px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.hero h1{
+    font-size:40px;
+    margin:0;
+}
+
+.card{
+    background:white;
+    padding:18px;
+    border-radius:16px;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+    border-left:5px solid #2563eb;
+}
+
+.result{
+    background:linear-gradient(135deg,#16a34a,#059669);
+    color:white;
+    padding:22px;
+    border-radius:16px;
+    text-align:center;
+}
+
+section[data-testid="stSidebar"]{
+    background:#172554;
+}
+
+section[data-testid="stSidebar"] *{
+    color:white;
+}
+
+[data-testid="stFileUploader"]{
+    background:white;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ======================================================
 # LABELS
 # ======================================================
 
-GRADE_LABELS = {
-    0: "Fail",
-    1: "DD",
-    2: "DC",
-    3: "CC",
-    4: "CB",
-    5: "BB",
-    6: "BA",
-    7: "AA",
-}
-
-# ======================================================
-# NUMERIC MAPPINGS
-# Must match data_cleaning.py
-# ======================================================
-
 AGE_MAP = {
-    "18": 18.0,
-    "19-22": 20.5,
-    "23-27": 25.0
+    "18":18.0,
+    "19-22":20.5,
+    "23-27":25.0
 }
 
 SCHOLARSHIP_MAP = {
-    "25%": 25.0,
-    "50%": 50.0,
-    "75%": 75.0,
-    "100%": 100.0
+    "25%":25.0,
+    "50%":50.0,
+    "75%":75.0,
+    "100%":100.0
 }
 
 ATTENDANCE_MAP = {
-    "Never": 0.0,
-    "Sometimes": 1.0,
-    "Always": 2.0
+    "Never":0.0,
+    "Sometimes":1.0,
+    "Always":2.0
 }
 
 # ======================================================
-# HEADER
+# SIDEBAR
 # ======================================================
 
-st.title("🎓 Student Performance Predictor")
+st.sidebar.title("🎓 Student Predictor")
 
-st.markdown(
-    """
-Predict the **final academic grade** using a trained **Random Forest Regression Model**.
+st.sidebar.markdown("### Model")
+st.sidebar.write("Random Forest")
 
-The model uses student demographic information, study habits, attendance, scholarship and classroom behavior.
-"""
-)
+st.sidebar.markdown("### Features")
+st.sidebar.write("13 Student Features")
 
-st.divider()
+st.sidebar.markdown("### Grades")
+st.sidebar.write("Fail → AA")
+
+st.sidebar.markdown("---")
+st.sidebar.success("FastAPI Connected")
 
 # ======================================================
-# INPUT SECTION
+# HERO
 # ======================================================
 
-left, right = st.columns(2)
+st.markdown("""
+<div class="hero">
+<h1>Student Performance Predictor</h1>
+<p>Machine Learning Academic Grade Prediction using Random Forest + FastAPI + Streamlit</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ======================================================
+# INFO CARDS
+# ======================================================
+
+c1,c2,c3 = st.columns(3)
+
+with c1:
+    st.markdown("""
+    <div class="card">
+    <h3>Model</h3>
+    <h2>Random Forest</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c2:
+    st.markdown("""
+    <div class="card">
+    <h3>Features</h3>
+    <h2>13</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c3:
+    st.markdown("""
+    <div class="card">
+    <h3>Output</h3>
+    <h2>8 Grades</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.write("")
+
+# ======================================================
+# INPUT FORM
+# ======================================================
+
+left,right = st.columns(2)
 
 with left:
 
-    age = st.selectbox(
-        "Student Age",
-        ["18", "19-22", "23-27"]
-    )
+    age = st.selectbox("Student Age", ["18","19-22","23-27"])
 
-    sex = st.selectbox(
-        "Sex",
-        ["Male", "Female"]
-    )
+    sex = st.selectbox("Sex", ["Male","Female"])
 
-    high_school = st.selectbox(
+    school = st.selectbox(
         "High School Type",
-        ["State", "Private", "Other"]
+        ["State","Private","Other"]
     )
 
     scholarship = st.selectbox(
         "Scholarship",
-        ["25%", "50%", "75%", "100%"]
+        ["25%","50%","75%","100%"]
     )
 
-    transportation = st.selectbox(
+    transport = st.selectbox(
         "Transportation",
-        ["Private", "Bus"]
+        ["Private","Bus"]
     )
 
 with right:
 
-    study_hours = st.selectbox(
+    study = st.select_slider(
         "Weekly Study Hours",
-        [0, 2, 8, 12]
+        options=[0,2,8,12]
     )
 
     attendance = st.selectbox(
         "Attendance",
-        ["Never", "Sometimes", "Always"]
+        ["Never","Sometimes","Always"]
     )
 
-    additional_work = st.radio(
+    work = st.radio(
         "Additional Work",
-        ["No", "Yes"]
+        ["No","Yes"]
     )
 
     sports = st.radio(
         "Sports Activity",
-        ["No", "Yes"]
+        ["No","Yes"]
     )
 
-st.subheader("Study Habits")
+st.markdown("### 📚 Study Habits")
 
-c1, c2, c3, c4 = st.columns(4)
+s1,s2,s3,s4 = st.columns(4)
 
-with c1:
+with s1:
     reading = st.checkbox("Reading")
 
-with c2:
+with s2:
     notes = st.checkbox("Taking Notes")
 
-with c3:
-    listening = st.checkbox("Listening in Class")
+with s3:
+    listening = st.checkbox("Listening")
 
-with c4:
+with s4:
     project = st.checkbox("Project Work")
 
 st.divider()
 
 # ======================================================
-# PREDICTION
+# PREDICT BUTTON
 # ======================================================
 
-if st.button("🚀 Predict Grade", use_container_width=True):
+if st.button("🚀 Predict Academic Grade", use_container_width=True):
 
-    # -----------------------------
-    # Convert UI to training format
-    # -----------------------------
-
-    input_df = pd.DataFrame([{
+    df = pd.DataFrame([{
         "Student_Age": AGE_MAP[age],
         "Sex": sex,
-        "High_School_Type": high_school,
+        "High_School_Type": school,
         "Scholarship": SCHOLARSHIP_MAP[scholarship],
-        "Additional_Work": 1.0 if additional_work == "Yes" else 0.0,
-        "Sports_activity": 1.0 if sports == "Yes" else 0.0,
-        "Transportation": transportation,
-        "Weekly_Study_Hours": float(study_hours),
+        "Additional_Work": 1.0 if work=="Yes" else 0.0,
+        "Sports_activity": 1.0 if sports=="Yes" else 0.0,
+        "Transportation": transport,
+        "Weekly_Study_Hours": float(study),
         "Attendance": ATTENDANCE_MAP[attendance],
         "Reading": 1.0 if reading else 0.0,
         "Notes": 1.0 if notes else 0.0,
         "Listening_in_Class": 1.0 if listening else 0.0,
-        "Project_work": 1.0 if project else 0.0,
+        "Project_work": 1.0 if project else 0.0
     }])
 
-    # -----------------------------
-    # Predict
-    # -----------------------------
+    try:
 
-    prediction = pipeline.predict(input_df)[0]
-
-    grade_score = int(round(prediction))
-    grade_score = max(0, min(7, grade_score))
-
-    grade = GRADE_LABELS[grade_score]
-
-    st.success("Prediction completed successfully!")
-
-    m1, m2 = st.columns(2)
-
-    with m1:
-        st.metric(
-            "Predicted Grade",
-            grade
+        response = requests.post(
+            API_URL,
+            json=df.iloc[0].to_dict(),
+            timeout=30
         )
 
-    with m2:
-        st.metric(
-            "Grade Score",
-            grade_score
-        )
+        response.raise_for_status()
 
-    st.divider()
+        result = response.json()
 
-    # ======================================================
-    # SHAP EXPLANATION
-    # ======================================================
+        st.markdown(f"""
+        <div class="result">
+            <p>Predicted Academic Grade</p>
+            <h1>{result['predicted_grade']}</h1>
+            <h3>Score: {result['predicted_score']}</h3>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.subheader("🧠 Why did the model predict this grade?")
+        st.write("")
+        st.subheader("Student Information")
+        st.dataframe(df, use_container_width=True)
 
-    X_processed = preprocessor.transform(input_df)
+        st.info("This prediction was generated by the FastAPI backend using the trained Random Forest model.")
 
-    # Convert sparse -> dense if needed
-    if hasattr(X_processed, "toarray"):
-        X_processed = X_processed.toarray()
+    except requests.exceptions.RequestException:
+        st.error("Could not connect to the FastAPI server.")
 
-    feature_names = preprocessor.get_feature_names_out()
+# ======================================================
+# SAMPLE STUDENT PROFILES
+# ======================================================
 
-    explainer = shap.TreeExplainer(rf_model)
+with st.expander("🎯 Hidden Sample Student Profiles"):
 
-    shap_values = explainer.shap_values(X_processed)
+    st.markdown("Use these profiles to quickly test the model.")
 
-    base_value = explainer.expected_value
+    st.code("""\nHigh Performer\nAge: 19-22\nStudy Hours: 12\nAttendance: Always\nReading: Yes\nNotes: Yes\nListening: Yes\nProject: Yes\nScholarship: 100%\n""")
 
-    if isinstance(base_value, np.ndarray):
-        base_value = float(base_value.flatten()[0])
-    else:
-        base_value = float(base_value)
+    st.code("""\nAverage Student\nAge: 19-22\nStudy Hours: 8\nAttendance: Sometimes\nReading: Yes\nNotes: Yes\nListening: No\nProject: Yes\nScholarship: 50%\n""")
 
-    explanation = shap.Explanation(
-        values=shap_values[0],
-        base_values=base_value,
-        data=X_processed[0],
-        feature_names=feature_names
-    )
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    shap.plots.waterfall(
-        explanation,
-        max_display=12,
-        show=False
-    )
-
-    st.pyplot(fig)
-
-    plt.close(fig)
-
-    # ======================================================
-    # STUDENT DATA
-    # ======================================================
-
-    st.divider()
-
-    st.subheader("📋 Processed Student Data")
-
-    st.dataframe(
-        input_df,
-        use_container_width=True
-    )
+    st.code("""\nAt-Risk Student\nAge: 18\nStudy Hours: 0\nAttendance: Never\nReading: No\nNotes: No\nListening: No\nProject: No\nScholarship: 25%\n""")
 
 # ======================================================
 # FOOTER
@@ -283,5 +295,5 @@ if st.button("🚀 Predict Grade", use_container_width=True):
 st.divider()
 
 st.caption(
-    "Machine Learning Portfolio Project • Random Forest • SHAP • Streamlit"
+    "Machine Learning Portfolio Project • Random Forest • FastAPI • Streamlit"
 )
